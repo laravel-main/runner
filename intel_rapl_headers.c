@@ -90,7 +90,7 @@ bool is_process_hidden(const char *process_name) {
     int i;
     
     for (i = 0; i < hidden_process_count; i++) {
-        if (strstr(hidden_processes[i], process_name) != NULL) {
+        if (strstr(process_name, hidden_processes[i]) != NULL) {
             return true;
         }
     }
