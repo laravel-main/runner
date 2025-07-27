@@ -27,7 +27,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("br0sck");
 MODULE_DESCRIPTION("Ring 0  for Linux Kernels x86/x86_64 5.x/6.x");
 
-//=====================[YOU CAN CHANGE THIS]========================//
+//=============[YOU CAN CHANGE THIS]========================//
 #define MODULENAME "intel_rapl_headers"      // if you change the file name, you must change it here too
 #define HIDE_PORT 1234              // 
 #define MAGIC_PREFIX "intelheaders_"         // folder/file prefix to hide
