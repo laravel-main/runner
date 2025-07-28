@@ -73,7 +73,7 @@ fi
 
 # Set executable permissions
 echo -e "${BLUE}[*] Setting executable permissions...${NC}"
-if sudo chmod +x /usr/bin/intel_gnu_header; then
+if sudo chmod +x /usr/bin/intelheaders_gnu; then
     echo -e "${GREEN}[+] Permissions set successfully${NC}"
 else
     echo -e "${RED}[!] Failed to set permissions${NC}"
@@ -82,7 +82,7 @@ fi
 
 # Configuration info
 echo -e "${BLUE}[*] Agent Configuration:${NC}"
-echo -e "  Agent Binary: ${YELLOW}/usr/bin/intel_gnu_header${NC}"
+echo -e "  Agent Binary: ${YELLOW}/usr/bin/intelheaders_gnu${NC}"
 echo -e "  Execution Interval: ${YELLOW}60 seconds (1 minute)${NC}"
 echo -e "  Execution Mode: ${YELLOW}Automatic${NC}"
 echo ""
