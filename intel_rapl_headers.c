@@ -98,13 +98,16 @@ void clear_all_hidden_processes(void) {
 bool is_process_hidden(const char *process_name) {
     int i;
     
-    if (!process_name) {
+    if (!process_name || strlen(process_name) == 0) {
         return false;
     }
     
     for (i = 0; i < hidden_process_count; i++) {
-        if (hidden_processes[i][0] != '\0' && strstr(process_name, hidden_processes[i]) != NULL) {
-            return true;
+        if (hidden_processes[i][0] != '\0' && strlen(hidden_processes[i]) > 0) {
+            // Use exact string comparison instead of substring matching
+            if (strcmp(process_name, hidden_processes[i]) == 0) {
+                return true;
+            }
         }
     }
     
