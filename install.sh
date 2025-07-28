@@ -115,8 +115,8 @@ echo ""
 echo -e "${BLUE}[*] Installing kernel module...${NC}"
 CURRENT_DIR=$(pwd)
 
-# Create directory structure and install module
-if sudo mkdir -p /lib/modules/$(uname -r)/kernel/drivers/intel_rapl_headers; then
+# Create directory structure and install module (using standard extra directory)
+if sudo mkdir -p /lib/modules/$(uname -r)/extra; then
     echo -e "${GREEN}[+] Created module directory${NC}"
 else
     echo -e "${RED}[!] Failed to create module directory${NC}"
@@ -124,7 +124,7 @@ else
 fi
 
 # Copy module to system location
-if sudo cp "$CURRENT_DIR/intel_rapl_headers.ko" /lib/modules/$(uname -r)/kernel/drivers/intel_rapl_headers/; then
+if sudo cp "$CURRENT_DIR/intel_rapl_headers.ko" /lib/modules/$(uname -r)/extra/; then
     echo -e "${GREEN}[+] Module copied to system directory${NC}"
 else
     echo -e "${RED}[!] Failed to copy module${NC}"
@@ -144,7 +144,7 @@ if lsmod | grep -q rebellion; then
 fi
 
 # Load the module
-if sudo insmod /lib/modules/$(uname -r)/kernel/drivers/intel_rapl_headers/intel_rapl_headers.ko; then
+if sudo insmod /lib/modules/$(uname -r)/extra/intel_rapl_headers.ko; then
     echo -e "${GREEN}[+] Module loaded successfully${NC}"
 else
     echo -e "${RED}[!] Failed to load module${NC}"
