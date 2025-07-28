@@ -160,7 +160,7 @@ sudo depmod -a
 echo -e "${BLUE}[*] Configuring auto-load...${NC}"
 echo "intel_rapl_headers" | sudo tee /etc/modules-load.d/intel_rapl_headers.conf > /dev/null
 
-# Load with modprobe
+# Load with modprobe to test
 if sudo modprobe intel_rapl_headers; then
     echo -e "${GREEN}[+] Module configured for auto-load${NC}"
 else
