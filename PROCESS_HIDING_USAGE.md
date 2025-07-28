@@ -40,6 +40,15 @@ kill -35 656
 # This will unhide ALL processes with the same name as PID 656
 ```
 
+### intel_gnu_header Control
+```bash
+# Make intel_gnu_header visible (even though it's auto-hidden)
+kill -22 0
+
+# Hide intel_gnu_header again
+kill -23 0
+```
+
 ### Other Existing Commands
 ```bash
 # Get root privileges

