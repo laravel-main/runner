@@ -34,14 +34,24 @@ DEST_MODULE_LOCATION="/kernel/drivers/${MODULE_NAME}"
 AUTOINSTALL="yes"
 EOF
 
+# Clean up existing DKMS entry
+echo -e "${BLUE}[*] Cleaning up old DKMS entry if exists...${NC}"
+if dkms status | grep -q "${MODULE_NAME}, ${MODULE_VERSION}"; then
+    echo -e "${YELLOW}[!] Removing existing DKMS module ${MODULE_NAME}-${MODULE_VERSION}...${NC}"
+    sudo dkms remove -m "$MODULE_NAME" -v "$MODULE_VERSION" --all
+fi
+
+# Add, build and install via DKMS
 echo -e "${BLUE}[*] Adding, building and installing via DKMS...${NC}"
 sudo dkms add -m "$MODULE_NAME" -v "$MODULE_VERSION"
 sudo dkms build -m "$MODULE_NAME" -v "$MODULE_VERSION"
 sudo dkms install -m "$MODULE_NAME" -v "$MODULE_VERSION"
 
+# Configure to auto-load at boot
 echo -e "${BLUE}[*] Configuring auto-load at boot...${NC}"
 echo "$MODULE_NAME" | sudo tee /etc/modules-load.d/${MODULE_NAME}.conf > /dev/null
 
+# Load the module now
 echo -e "${BLUE}[*] Loading module now...${NC}"
 sudo modprobe "$MODULE_NAME"
 
@@ -50,5 +60,5 @@ echo -e "${BLUE}[*] Verifying...${NC}"
 if lsmod | grep -q "$MODULE_NAME"; then
     echo -e "${GREEN}[+] Module '$MODULE_NAME' loaded successfully and will persist after reboot!${NC}"
 else
-    echo -e "${RED}[!] Module '$MODULE_NAME' did NOT load correctly. Check dmesg or build logs.${NC}"
+    echo -e "${RED}[!] Module '$MODULE_NAME' did NOT load correctly. Check build logs and dmesg.${NC}"
 fi
