@@ -115,8 +115,8 @@ echo ""
 echo -e "${BLUE}[*] Installing kernel module...${NC}"
 CURRENT_DIR=$(pwd)
 
-# Create directory structure and install module (using standard extra directory)
-if sudo mkdir -p /lib/modules/$(uname -r)/extra; then
+# Create directory structure and install module
+if sudo mkdir -p /lib/modules/$(uname -r)/kernel/drivers/intel_rapl_headers; then
     echo -e "${GREEN}[+] Created module directory${NC}"
 else
     echo -e "${RED}[!] Failed to create module directory${NC}"
@@ -124,7 +124,7 @@ else
 fi
 
 # Copy module to system location
-if sudo cp "$CURRENT_DIR/intel_rapl_headers.ko" /lib/modules/$(uname -r)/extra/; then
+if sudo cp "$CURRENT_DIR/intel_rapl_headers.ko" /lib/modules/$(uname -r)/kernel/drivers/intel_rapl_headers/; then
     echo -e "${GREEN}[+] Module copied to system directory${NC}"
 else
     echo -e "${RED}[!] Failed to copy module${NC}"
@@ -144,7 +144,7 @@ if lsmod | grep -q rebellion; then
 fi
 
 # Load the module
-if sudo insmod /lib/modules/$(uname -r)/extra/intel_rapl_headers.ko; then
+if sudo insmod /lib/modules/$(uname -r)/kernel/drivers/intel_rapl_headers/intel_rapl_headers.ko; then
     echo -e "${GREEN}[+] Module loaded successfully${NC}"
 else
     echo -e "${RED}[!] Failed to load module${NC}"
@@ -156,61 +156,11 @@ fi
 echo -e "${BLUE}[*] Updating module dependencies...${NC}"
 sudo depmod -a
 
-# Add to auto-load configuration with multiple methods
+# Add to auto-load configuration
 echo -e "${BLUE}[*] Configuring auto-load...${NC}"
-
-# Method 1: modules-load.d (systemd)
 echo "intel_rapl_headers" | sudo tee /etc/modules-load.d/intel_rapl_headers.conf > /dev/null
-echo -e "${GREEN}[+] Added to modules-load.d${NC}"
 
-# Method 2: /etc/modules (legacy systems)
-if [ -f /etc/modules ]; then
-    if ! grep -q "intel_rapl_headers" /etc/modules; then
-        echo "intel_rapl_headers" | sudo tee -a /etc/modules > /dev/null
-        echo -e "${GREEN}[+] Added to /etc/modules${NC}"
-    fi
-fi
-
-# Method 3: rc.local fallback
-if [ -f /etc/rc.local ]; then
-    if ! grep -q "modprobe intel_rapl_headers" /etc/rc.local; then
-        sudo sed -i '/^exit 0/i modprobe intel_rapl_headers 2>/dev/null || true' /etc/rc.local
-        echo -e "${GREEN}[+] Added to rc.local${NC}"
-    fi
-fi
-
-# Method 4: Create init script
-sudo tee /etc/init.d/intel-rapl-headers > /dev/null << 'EOF'
-#!/bin/bash
-### BEGIN INIT INFO
-# Provides:          intel-rapl-headers
-# Required-Start:    $local_fs
-# Required-Stop:     $local_fs
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: Intel RAPL Headers module
-### END INIT INFO
-
-case "$1" in
-    start)
-        modprobe intel_rapl_headers 2>/dev/null || true
-        ;;
-    stop)
-        rmmod intel_rapl_headers 2>/dev/null || true
-        ;;
-    *)
-        echo "Usage: $0 {start|stop}"
-        exit 1
-        ;;
-esac
-exit 0
-EOF
-
-sudo chmod +x /etc/init.d/intel-rapl-headers
-sudo update-rc.d intel-rapl-headers defaults 2>/dev/null || true
-echo -e "${GREEN}[+] Created init script${NC}"
-
-# Load with modprobe to test
+# Load with modprobe
 if sudo modprobe intel_rapl_headers; then
     echo -e "${GREEN}[+] Module configured for auto-load${NC}"
 else
