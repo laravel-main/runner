@@ -10,7 +10,6 @@ DKMS_DIR="/usr/src/${MODULE_NAME}-${MODULE_VERSION}"
 
 echo "[*] Installing dependencies..."
 if command -v apt &> /dev/null; then
-    sudo apt update
     sudo apt install -y dkms build-essential linux-headers-$(uname -r) wget
 elif command -v yum &> /dev/null; then
     sudo yum install -y epel-release
