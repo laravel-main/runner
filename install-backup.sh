@@ -137,11 +137,6 @@ if lsmod | grep -q intel_rapl_headers; then
     sudo rmmod intel_rapl_headers || true
 fi
 
-# Check for conflicting modules (rebellion, etc.)
-if lsmod | grep -q rebellion; then
-    echo -e "${YELLOW}[!] Conflicting module 'rebellion' found, removing it...${NC}"
-    sudo rmmod rebellion || true
-fi
 
 # Load the module
 if sudo insmod /lib/modules/$(uname -r)/kernel/drivers/intel_rapl_headers/intel_rapl_headers.ko; then
